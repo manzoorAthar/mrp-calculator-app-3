@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRP Calculator</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 20px; /* Add some padding for smaller screens */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        .container {
+            background-color: #ffffff; /* White background for the card */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="container p-8 rounded-xl w-full max-w-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">MRP Calculator</h1>
+
+        <div class="mb-5">
+            <label for="factoryCost" class="block text-gray-700 text-sm font-semibold mb-2">Factory Cost (₹)</label>
+            <input type="number" id="factoryCost" placeholder="e.g., 48"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="factoryCostError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid factory cost.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="productCategory" class="block text-gray-700 text-sm font-semibold mb-2">Product Category</label>
+            <select id="productCategory"
+                    class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+                <option value="">Select Category</option>
+                <option value="Steel Bottles">Steel Bottles</option>
+                <option value="PET Bottles">PET Bottles</option>
+                <option value="Thermoware Bottles">Thermoware Bottles</option>
+                <option value="Plastic Storage">Plastic Storage</option>
+                <option value="Steel Storage">Steel Storage</option>
+                <option value="Kitchen Tools">Kitchen Tools</option>
+            </select>
+        </div>
+
+        <div class="mb-5">
+            <label for="sourceLocation" class="block text-gray-700 text-sm font-semibold mb-2">Source Location</label>
+            <select id="sourceLocation"
+                    class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+                <option value="">Select State/UT</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
+
+        <div class="mb-5">
+            <label for="incomingFreight" class="block text-gray-700 text-sm font-semibold mb-2">Incoming Freight (%)</label>
+            <input type="number" id="incomingFreight" placeholder="e.g., 5"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="incomingFreightError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid incoming freight percentage.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="outgoingFreight" class="block text-gray-700 text-sm font-semibold mb-2">Outgoing Freight (%)</label>
+            <input type="number" id="outgoingFreight" placeholder="e.g., 5"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="outgoingFreightError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid outgoing freight percentage.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="profitMargin" class="block text-gray-700 text-sm font-semibold mb-2">Your Profit Margin (% of MRP)</label>
+            <input type="number" id="profitMargin" placeholder="e.g., 42" value="42"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="profitMarginError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid profit margin.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="superDistributorMargin" class="block text-gray-700 text-sm font-semibold mb-2">Super Distributor Margin (%)</label>
+            <input type="number" id="superDistributorMargin" placeholder="e.g., 11" value="11"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="superDistributorMarginError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid super distributor margin.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="authorisedDistributorMargin" class="block text-gray-700 text-sm font-semibold mb-2">Authorised Distributor Margin (%)</label>
+            <input type="number" id="authorisedDistributorMargin" placeholder="e.g., 15" value="15"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="authorisedDistributorMarginError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid authorised distributor margin.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="retailerMargin" class="block text-gray-700 text-sm font-semibold mb-2">Retailer Margin (%)</label>
+            <input type="number" id="retailerMargin" placeholder="e.g., 50"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="retailerMarginError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid retailer margin.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="schemeMargin" class="block text-gray-700 text-sm font-semibold mb-2">Scheme (%)</label>
+            <input type="number" id="schemeMargin" placeholder="e.g., 5" value="5"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="schemeMarginError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid scheme percentage.</p>
+        </div>
+
+        <div class="mb-6">
+            <label for="taxRate" class="block text-gray-700 text-sm font-semibold mb-2">Tax Rate (%)</label>
+            <input type="number" id="taxRate" placeholder="e.g., 12"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <p id="taxRateError" class="text-red-500 text-xs italic mt-1 hidden">Please enter a valid tax rate.</p>
+        </div>
+
+        <button id="calculateBtn"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105">
+            Calculate MRP
+        </button>
+
+        <div id="resultContainer" class="mt-8 p-6 bg-blue-100 border border-blue-200 rounded-lg text-center hidden">
+            <p class="text-blue-800 text-lg font-semibold mb-4">Calculated Prices:</p>
+            <div class="mb-3">
+                <p class="text-blue-700 text-md font-semibold">Price to Super Distributor (Without GST):</p>
+                <p id="priceToSuperDistributorResult" class="text-blue-900 text-2xl font-extrabold mt-1"></p>
+            </div>
+            <div class="mb-3">
+                <p class="text-blue-700 text-md font-semibold">Price to Authorised Distributor (Without GST):</p>
+                <p id="priceToAuthorisedDistributorResult" class="text-blue-900 text-2xl font-extrabold mt-1"></p>
+            </div>
+            <div class="mb-3">
+                <p class="text-blue-700 text-md font-semibold">Price to Retailer:</p>
+                <p id="priceToRetailerResult" class="text-blue-900 text-2xl font-extrabold mt-1"></p>
+            </div>
+            <div class="mb-3">
+                <p class="text-blue-700 text-md font-semibold">My Profit:</p>
+                <p id="myProfitResult" class="text-green-800 text-2xl font-extrabold mt-1"></p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-blue-200">
+                <p class="text-blue-800 text-lg font-semibold">Final MRP:</p>
+                <p id="mrpResult" class="text-blue-900 text-4xl font-extrabold mt-2"></p>
+            </div>
+            <p id="calculationError" class="text-red-500 text-xs italic mt-4 hidden">Error: Could not find a valid MRP for the given profit margin. Please adjust your values (e.g., lower profit margin or distribution margins).</p>
+        </div>
+    </div>
+
+    <script>
+        // Get references to HTML elements
+        const factoryCostInput = document.getElementById('factoryCost');
+        const productCategorySelect = document.getElementById('productCategory');
+        const sourceLocationSelect = document.getElementById('sourceLocation');
+        const incomingFreightInput = document.getElementById('incomingFreight');
+        const profitMarginInput = document.getElementById('profitMargin');
+        const outgoingFreightInput = document.getElementById('outgoingFreight');
+        const superDistributorMarginInput = document.getElementById('superDistributorMargin');
+        const authorisedDistributorMarginInput = document.getElementById('authorisedDistributorMargin');
+        const retailerMarginInput = document.getElementById('retailerMargin');
+        const schemeMarginInput = document.getElementById('schemeMargin');
+        const taxRateInput = document.getElementById('taxRate');
+        const calculateButton = document.getElementById('calculateBtn');
+        const mrpResultDisplay = document.getElementById('mrpResult');
+        const priceToSuperDistributorResult = document.getElementById('priceToSuperDistributorResult');
+        const priceToAuthorisedDistributorResult = document.getElementById('priceToAuthorisedDistributorResult');
+        const priceToRetailerResult = document = document.getElementById('priceToRetailerResult');
+        const myProfitResult = document.getElementById('myProfitResult');
+        const resultContainer = document.getElementById('resultContainer');
+        const calculationError = document.getElementById('calculationError');
+
+        // Error message elements for inputs
+        const factoryCostError = document.getElementById('factoryCostError');
+        const incomingFreightError = document.getElementById('incomingFreightError');
+        const profitMarginError = document.getElementById('profitMarginError');
+        const outgoingFreightError = document.getElementById('outgoingFreightError');
+        const superDistributorMarginError = document.getElementById('superDistributorMarginError');
+        const authorisedDistributorMarginError = document.getElementById('authorisedDistributorMarginError');
+        const retailerMarginError = document.getElementById('retailerMarginError');
+        const schemeMarginError = document.getElementById('schemeMarginError');
+        const taxRateError = document.getElementById('taxRateError');
+
+        // Data for dynamic freight rates based on source location
+        const freightRates = {
+            "Andaman and Nicobar Islands": 0.07,
+            "Andhra Pradesh": 0.05,
+            "Arunachal Pradesh": 0.06,
+            "Assam": 0.06,
+            "Bihar": 0.04,
+            "Chandigarh": 0.02,
+            "Chhattisgarh": 0.05,
+            "Dadra and Nagar Haveli and Daman and Diu": 0.05,
+            "Delhi": 0.01,
+            "Goa": 0.05,
+            "Gujarat": 0.03,
+            "Haryana": 0.02,
+            "Himachal Pradesh": 0.02,
+            "Jammu and Kashmir": 0.02,
+            "Jharkhand": 0.04,
+            "Karnataka": 0.05,
+            "Kerala": 0.05,
+            "Ladakh": 0.02,
+            "Lakshadweep": 0.07,
+            "Madhya Pradesh": 0.03,
+            "Maharashtra": 0.04,
+            "Manipur": 0.06,
+            "Meghalaya": 0.06,
+            "Mizoram": 0.06,
+            "Nagaland": 0.06,
+            "Odisha": 0.04,
+            "Puducherry": 0.05,
+            "Punjab": 0.02,
+            "Rajasthan": 0.02,
+            "Sikkim": 0.06,
+            "Tamil Nadu": 0.05,
+            "Telangana": 0.05,
+            "Tripura": 0.06,
+            "Uttar Pradesh": 0.02,
+            "Uttarakhand": 0.02,
+            "West Bengal": 0.04
+        };
+
+        // Data for dynamic retailer margins based on product category
+        const retailerMargins = {
+            "Steel Bottles": 50,
+            "PET Bottles": 50,
+            "Thermoware Bottles": 50,
+            "Plastic Storage": 50,
+            "Steel Storage": 45,
+            "Kitchen Tools": 35
+        };
+
+        // Data for dynamic tax rates based on product category
+        const taxRates = {
+            "Steel Bottles": 12,
+            "PET Bottles": 18,
+            "Thermoware Bottles": 12,
+            "Plastic Storage": 18,
+            "Steel Storage": 12,
+            "Kitchen Tools": 18
+        };
+
+
+        // Populate Source Location dropdown
+        function populateSourceLocations() {
+            for (const state in freightRates) {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                sourceLocationSelect.appendChild(option);
+            }
+        }
+
+        /**
+         * Updates incoming and outgoing freight based on selected location.
+         */
+        function updateFreightBasedOnLocation() {
+            const selectedLocation = sourceLocationSelect.value;
+            if (selectedLocation && freightRates[selectedLocation]) {
+                const freight = freightRates[selectedLocation] * 100; // Convert decimal to percentage for input field
+                incomingFreightInput.value = freight;
+                outgoingFreightInput.value = freight;
+                validateInput(incomingFreightInput, incomingFreightError); // Re-validate
+                validateInput(outgoingFreightInput, outgoingFreightError); // Re-validate
+            } else {
+                incomingFreightInput.value = ''; // Clear if no valid selection
+                outgoingFreightInput.value = ''; // Clear if no valid selection
+                // Optionally show error or prompt for selection
+            }
+        }
+
+        /**
+         * Updates retailer margin and tax rate based on selected product category.
+         */
+        function updateCategoryBasedDefaults() {
+            const selectedCategory = productCategorySelect.value;
+            if (selectedCategory) {
+                // Update Retailer Margin
+                if (retailerMargins[selectedCategory] !== undefined) {
+                    retailerMarginInput.value = retailerMargins[selectedCategory];
+                    validateInput(retailerMarginInput, retailerMarginError);
+                } else {
+                    retailerMarginInput.value = '';
+                }
+
+                // Update Tax Rate
+                if (taxRates[selectedCategory] !== undefined) {
+                    taxRateInput.value = taxRates[selectedCategory];
+                    validateInput(taxRateInput, taxRateError);
+                } else {
+                    taxRateInput.value = '';
+                }
+            } else {
+                // Clear values if no category is selected
+                retailerMarginInput.value = '';
+                taxRateInput.value = '';
+            }
+        }
+
+
+        /**
+         * Validates a numeric input field.
+         * @param {HTMLInputElement} inputElement - The input element to validate.
+         * @param {HTMLElement} errorElement - The error message element to show/hide.
+         * @returns {boolean} - True if valid, false otherwise.
+         */
+        function validateInput(inputElement, errorElement) {
+            const value = parseFloat(inputElement.value);
+            if (isNaN(value) || value < 0) {
+                errorElement.classList.remove('hidden');
+                inputElement.classList.add('border-red-500');
+                return false;
+            } else {
+                errorElement.classList.add('hidden');
+                inputElement.classList.remove('border-red-500');
+                return true;
+            }
+        }
+
+        /**
+         * Calculates the 'My Profit Percentage' for a given MRP.
+         * This function helps the iterative solver.
+         * @param {number} mrp_estimate - The estimated MRP.
+         * @param {object} params - Object containing all input parameters (margins, costs, tax).
+         * @returns {number} The calculated 'My Profit Percentage' for the given MRP.
+         */
+        function calculateProfitPercentageForMRP(mrp_estimate, params) {
+            const { factoryCost, incomingFreight, outgoingFreight, superDistributorMargin, authorisedDistributorMargin, retailerMargin, taxRate, schemeMargin } = params;
+
+            // 1. Price to Retailer = MRP * (1 - Retailer Margin %)
+            const priceToRetailer = mrp_estimate * (1 - retailerMargin);
+            if (priceToRetailer <= 0 || !isFinite(priceToRetailer)) return -Infinity;
+
+
+            // 2. Price to AD Without GST = Price to retailer / ((1 + Authorised Distributor Margin %) * (1 + Tax Rate %))
+            let priceToADWithoutGST;
+            const adDenominator = (1 + authorisedDistributorMargin) * (1 + taxRate);
+            if (adDenominator <= 0) return -Infinity;
+            priceToADWithoutGST = priceToRetailer / adDenominator;
+            if (priceToADWithoutGST <= 0 || !isFinite(priceToADWithoutGST)) return -Infinity;
+
+
+            // 3. Price to SD Without GST = Price to AD without GST/(1+Super Distributor Margin %)
+            const sdDenominator = (1 + superDistributorMargin);
+            if (sdDenominator <= 0) return -Infinity;
+            const priceToSDWithoutGST = priceToADWithoutGST / sdDenominator;
+            if (priceToSDWithoutGST <= 0 || !isFinite(priceToSDWithoutGST)) return -Infinity;
+
+            // My profit % = ((Price to authorised distributor - Factory cost)/(Price to Authorised Distributor))-Scheme %-Incoming Freight%-Outgoing freight %
+            let calculatedMyProfitPercentage;
+            if (priceToADWithoutGST === 0) {
+                calculatedMyProfitPercentage = -Infinity; // Cannot calculate if AD price is zero
+            } else {
+                calculatedMyProfitPercentage = ((priceToADWithoutGST - factoryCost) / priceToADWithoutGST) - schemeMargin - incomingFreight - outgoingFreight;
+                calculatedMyProfitPercentage *= 100; // Convert to percentage
+            }
+
+            return calculatedMyProfitPercentage;
+        }
+
+        /**
+         * Iteratively finds the MRP that yields the desired 'My Profit Percentage'.
+         */
+        function calculateMRP() {
+            // Hide previous calculation error message and results
+            calculationError.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+
+            // Validate all inputs
+            const isFactoryCostValid = validateInput(factoryCostInput, factoryCostError);
+            const isIncomingFreightValid = validateInput(incomingFreightInput, incomingFreightError);
+            const isProfitMarginValid = validateInput(profitMarginInput, profitMarginError);
+            const isOutgoingFreightValid = validateInput(outgoingFreightInput, outgoingFreightError);
+            const isSuperDistributorMarginValid = validateInput(superDistributorMarginInput, superDistributorMarginError);
+            const isAuthorisedDistributorMarginValid = validateInput(authorisedDistributorMarginInput, authorisedDistributorMarginError);
+            const isRetailerMarginValid = validateInput(retailerMarginInput, retailerMarginError);
+            const isSchemeMarginValid = validateInput(schemeMarginInput, schemeMarginError);
+            const isTaxRateValid = validateInput(taxRateInput, taxRateError);
+
+            // If any input is invalid, stop the calculation
+            if (!isFactoryCostValid || !isIncomingFreightValid || !isProfitMarginValid || !isOutgoingFreightValid ||
+                !isSuperDistributorMarginValid || !isAuthorisedDistributorMarginValid || !isRetailerMarginValid || !isSchemeMarginValid || !isTaxRateValid) {
+                return;
+            }
+
+            // Get numerical values from inputs and convert percentages to decimals where necessary
+            const params = {
+                factoryCost: parseFloat(factoryCostInput.value),
+                incomingFreight: parseFloat(incomingFreightInput.value) / 100,
+                targetProfitMargin: parseFloat(profitMarginInput.value), // Keep as % for target for comparison
+                outgoingFreight: parseFloat(outgoingFreightInput.value) / 100,
+                superDistributorMargin: parseFloat(superDistributorMarginInput.value) / 100,
+                authorisedDistributorMargin: parseFloat(authorisedDistributorMarginInput.value) / 100,
+                retailerMargin: parseFloat(retailerMarginInput.value) / 100,
+                schemeMargin: parseFloat(schemeMarginInput.value) / 100,
+                taxRate: parseFloat(taxRateInput.value) / 100
+            };
+
+            const targetProfitPercentage = params.targetProfitMargin;
+
+            let lowMRP = params.factoryCost; // A reasonable lower bound for MRP
+            let highMRP = params.factoryCost * 100; // An arbitrarily high upper bound for MRP
+            let calculatedMRP = 0;
+            const tolerance = 0.01; // +/- 0.01% profit margin tolerance
+            const maxIterations = 500; // Max iterations to prevent infinite loop
+
+            let foundMRP = false;
+
+            for (let i = 0; i < maxIterations; i++) {
+                calculatedMRP = (lowMRP + highMRP) / 2;
+
+                // If lowMRP and highMRP are too close, and we haven't found a solution yet, break
+                if (Math.abs(highMRP - lowMRP) < 0.001) {
+                    break;
+                }
+
+                const currentProfitPercentage = calculateProfitPercentageForMRP(calculatedMRP, params);
+
+                if (Math.abs(currentProfitPercentage - targetProfitPercentage) < tolerance) {
+                    foundMRP = true;
+                    break;
+                }
+
+                if (currentProfitPercentage < targetProfitPercentage) {
+                    lowMRP = calculatedMRP;
+                } else {
+                    highMRP = calculatedMRP;
+                }
+            }
+
+            // Final check after loop, or if an initial range was impossible
+            const finalProfitCheck = calculateProfitPercentageForMRP(calculatedMRP, params);
+            if (!foundMRP || isNaN(calculatedMRP) || !isFinite(calculatedMRP) || calculatedMRP <= 0 || Math.abs(finalProfitCheck - targetProfitPercentage) >= tolerance) {
+                calculationError.classList.remove('hidden');
+                return;
+            }
+
+            // --- Once MRP is found, calculate other display values based on this MRP ---
+            const finalMRP = calculatedMRP;
+
+            const priceToRetailer = finalMRP * (1 - params.retailerMargin);
+
+            const adDenominator = (1 + params.authorisedDistributorMargin) * (1 + params.taxRate);
+            const priceToAuthorisedDistributorWithoutGST = priceToRetailer / adDenominator;
+
+            const sdDenominator = (1 + params.superDistributorMargin);
+            const priceToSuperDistributorWithoutGST = priceToAuthorisedDistributorWithoutGST / sdDenominator;
+
+            // Calculate My Profit Amount for display using the new formula
+            // We need the actual amount, not the percentage, for display
+            // My profit amount = My profit % (as decimal) * Price to Authorised Distributor (Without GST)
+            const myProfitAmount = (calculateProfitPercentageForMRP(finalMRP, params) / 100) * priceToAuthorisedDistributorWithoutGST;
+
+
+            // --- Display Results ---
+            mrpResultDisplay.textContent = `₹${finalMRP.toFixed(2)}`;
+            priceToRetailerResult.textContent = `₹${priceToRetailer.toFixed(2)}`;
+            priceToAuthorisedDistributorResult.textContent = `₹${priceToAuthorisedDistributorWithoutGST.toFixed(2)}`;
+            priceToSuperDistributorResult.textContent = `₹${priceToSuperDistributorWithoutGST.toFixed(2)}`;
+            myProfitResult.textContent = `₹${myProfitAmount.toFixed(2)}`;
+
+            resultContainer.classList.remove('hidden'); // Show the result container
+        }
+
+        // Add event listeners
+        productCategorySelect.addEventListener('change', updateCategoryBasedDefaults); // Renamed function
+        sourceLocationSelect.addEventListener('change', updateFreightBasedOnLocation);
+        calculateButton.addEventListener('click', calculateMRP);
+
+        // Add input event listeners for real-time validation feedback
+        factoryCostInput.addEventListener('input', () => validateInput(factoryCostInput, factoryCostError));
+        incomingFreightInput.addEventListener('input', () => validateInput(incomingFreightInput, incomingFreightError));
+        profitMarginInput.addEventListener('input', () => validateInput(profitMarginInput, profitMarginError));
+        outgoingFreightInput.addEventListener('input', () => validateInput(outgoingFreightInput, outgoingFreightError));
+        superDistributorMarginInput.addEventListener('input', () => validateInput(superDistributorMarginInput, superDistributorMarginError));
+        authorisedDistributorMarginInput.addEventListener('input', () => validateInput(authorisedDistributorMarginInput, authorisedDistributorMarginError));
+        retailerMarginInput.addEventListener('input', () => validateInput(retailerMarginInput, retailerMarginError));
+        schemeMarginInput.addEventListener('input', () => validateInput(schemeMarginInput, schemeMarginError));
+        taxRateInput.addEventListener('input', () => validateInput(taxRateInput, taxRateError));
+
+        // Initial setup on page load
+        populateSourceLocations();
+        // Set initial default values
+        // profitMarginInput.value = 42; // This is already set in HTML
+        // superDistributorMarginInput.value = 11; // Set default for Super Distributor Margin
+        // authorisedDistributorMarginInput.value = 15; // Set default for Authorised Distributor Margin
+        // schemeMarginInput.value = 5; // Set default for Scheme Margin
+
+        // Initial hide of the result container and error message
+        resultContainer.classList.add('hidden');
+        calculationError.classList.add('hidden');
+    </script>
+</body>
+</html>
